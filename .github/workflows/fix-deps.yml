@@ -1,0 +1,29 @@
+name: Auto-Fix Dependencies
+
+on: workflow_dispatch
+
+permissions:
+  contents: write
+
+jobs:
+  fix-deps:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Inject Missing Libraries
+        run: |
+          echo "" >> app/build.gradle.kts
+          echo "dependencies {" >> app/build.gradle.kts
+          echo "    implementation(\"androidx.recyclerview:recyclerview:1.3.2\")" >> app/build.gradle.kts
+          echo "    implementation(\"com.google.android.material:material:1.12.0\")" >> app/build.gradle.kts
+          echo "}" >> app/build.gradle.kts
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add app/build.gradle.kts
+          git commit -m "fix: add missing RecyclerView and Material dependencies" || echo "No changes to commit"
+          git push
