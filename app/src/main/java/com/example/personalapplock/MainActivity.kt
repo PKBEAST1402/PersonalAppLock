@@ -1,76 +1,38 @@
 package com.example.personalapplock
 
-import android.accessibilityservice.AccessibilityServiceInfo
-import android.content.Intent
 import android.os.Bundle
-import android.provider.Settings
-import android.view.accessibility.AccessibilityManager
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
-import androidx.activity.ComponentActivity
+import androidx.fragment.app.FragmentActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.tabs.TabLayout
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
+    
+    // Dummy data matching your screenshot to test the UI!
+    private val allApps = listOf("ACT Fibernet", "Amazon", "Authenticator", "Bixby", "Bloomee", "Brake Time", "Calculator", "Calendar", "Camera")
+    private val lockedApps = listOf("Amazon", "Camera", "Photos") // Example locked apps
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val pad = (resources.displayMetrics.density * 20).toInt()
-        val layout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(pad, pad, pad, pad)
-        }
-        layout.addView(TextView(this).apply {
-            text = "Personal AppLock"
-            textSize = 26f
-        })
-        layout.addView(TextView(this).apply {
-            text = "Choose apps to protect. Then enable the AppLock accessibility service below."
-            textSize = 14f
-        })
+        setContentView(R.layout.activity_main)
 
-        val pinInput = EditText(this).apply {
-            hint = "Set a new numeric PIN (4–12 digits)"
-            inputType = 2
-            setText(SecurityStore.pin(this@MainActivity))
-        }
-        layout.addView(pinInput)
-        layout.addView(Button(this).apply {
-            text = "Save PIN"
-            setOnClickListener {
-                val pin = pinInput.text.toString()
-                if (pin.length in 4..12 && pin.all(Char::isDigit)) {
-                    SecurityStore.setPin(this@MainActivity, pin)
-                    Toast.makeText(this@MainActivity, "PIN saved", Toast.LENGTH_SHORT).show()
-                } else Toast.makeText(this@MainActivity, "Use 4–12 digits", Toast.LENGTH_SHORT).show()
-            }
-        })
+        val recyclerView = findViewById<RecyclerView>(R.id.recyclerViewApps)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        
+        val adapter = AppAdapter(allApps)
+        recyclerView.adapter = adapter
 
-        layout.addView(Button(this).apply {
-            text = "Enable AppLock monitoring"
-            setOnClickListener { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
-        })
-
-        val appList = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        val selected = SecurityStore.lockedPackages(this).toMutableSet()
-        val apps = packageManager.getInstalledApplications(0)
-            .filter { it.packageName != packageName }
-            .sortedBy { packageManager.getApplicationLabel(it).toString().lowercase() }
-        apps.forEach { app ->
-            val label = packageManager.getApplicationLabel(app).toString()
-            val check = CheckBox(this).apply {
-                text = label
-                isChecked = selected.contains(app.packageName)
-                setOnCheckedChangeListener { _, checked ->
-                    if (checked) selected.add(app.packageName) else selected.remove(app.packageName)
-                    SecurityStore.setLocked(this@MainActivity, selected)
+        val tabLayout = findViewById<TabLayout>(R.id.tabLayout)
+        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                if (tab?.position == 0) {
+                    adapter.updateData(allApps) // Show all apps
+                } else {
+                    adapter.updateData(lockedApps) // Show only locked apps
                 }
             }
-            appList.addView(check)
-        }
-        layout.addView(TextView(this).apply { text = "Apps to lock"; textSize = 18f })
-        layout.addView(appList)
-        setContentView(android.widget.ScrollView(this).apply { addView(layout) })
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
     }
 }
