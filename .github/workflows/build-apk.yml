@@ -47,6 +47,9 @@ jobs:
           if [ -n "$THUMBNAIL_PATH" ]; then
             echo "Successfully found PNG thumbnail at: $THUMBNAIL_PATH"
             
+            # CRITICAL FIX: Delete all default adaptive icons so they don't override the PNG
+            rm -rf app/src/main/res/mipmap-* || true
+            
             # Create the specific 'mipmap' folder that Android File Managers expect
             mkdir -p app/src/main/res/mipmap-xxxhdpi
             
