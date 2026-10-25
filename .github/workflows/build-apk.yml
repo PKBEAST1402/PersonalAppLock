@@ -33,10 +33,9 @@ jobs:
       - name: Force Java 17 Compatibility
         working-directory: ./source/PersonalAppLock
         run: |
-          # Recursively find all Gradle files and replace Java 1.8 references with Java 17
-          find . -type f -name "*build.gradle*" -exec sed -i 's/VERSION_1_8/VERSION_17/g' {} +
-          find . -type f -name "*build.gradle*" -exec sed -i 's/"1.8"/"17"/g' {} +
-          find . -type f -name "*build.gradle*" -exec sed -i "s/'1.8'/'17'/g" {} +
+          # Append the correct Java 17 settings to the end of the file to override old settings
+          echo "" >> app/build.gradle.kts
+          echo "android { compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 } }" >> app/build.gradle.kts
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
