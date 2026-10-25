@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Personal AppLock</string>
+    <string name="accessibility_description">Detects when a selected app opens so Personal AppLock can request authentication.</string>
+</resources>
