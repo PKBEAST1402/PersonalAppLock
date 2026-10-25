@@ -1,5 +1,7 @@
 package com.example.personalapplock
 
+import com.example.personalapplock.R
+
 import android.os.Bundle
 import android.content.Intent
 import android.widget.ImageView
