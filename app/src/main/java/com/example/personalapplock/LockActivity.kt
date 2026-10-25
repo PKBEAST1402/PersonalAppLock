@@ -11,7 +11,7 @@ import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 
-class LockActivity : ComponentActivity() {
+class LockActivity : androidx.fragment.app.FragmentActivity() {
     companion object { const val EXTRA_TARGET_PACKAGE = "target_package" }
     private lateinit var targetPackage: String
 
