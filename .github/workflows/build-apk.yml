@@ -7,7 +7,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -35,20 +35,25 @@ jobs:
 
       - name: Set App Name and Icon
         run: |
-          # 1. Format the GitHub Action run number to 3 digits (e.g., 001, 002)
           VERSION_SUFFIX=$(printf "%03d" ${{ github.run_number }})
           NEW_APP_NAME="Praveen Applock v0.$VERSION_SUFFIX"
           
-          # 2. Update the app name in strings.xml
-          sed -i "s/<string name=\"app_name\">.*<\/string>/<string name=\"app_name\">$NEW_APP_NAME<\/string>/g" app/src/main/res/values/strings.xml || true
+          sed -i -E "s/<string name=\"app_name\".*>.*<\/string>/<string name=\"app_name\">$NEW_APP_NAME<\/string>/g" app/src/main/res/values/strings.xml || true
           
-          # 3. Setup the new app icon (if uploaded to the root of the repository)
-          if [ -f "app_icon.jpg" ]; then
+          ICON_PATH=$(find . -name "app_icon.jpg" | head -n 1)
+          
+          if [ -n "$ICON_PATH" ]; then
+            echo "Successfully found icon at: $ICON_PATH"
             mkdir -p app/src/main/res/drawable
-            cp app_icon.jpg app/src/main/res/drawable/app_icon.jpg
+            cp "$ICON_PATH" app/src/main/res/drawable/app_icon.jpg
             sed -i 's/android:icon="[^"]*"/android:icon="@drawable\/app_icon"/g' app/src/main/AndroidManifest.xml || true
             sed -i 's/android:roundIcon="[^"]*"/android:roundIcon="@drawable\/app_icon"/g' app/src/main/AndroidManifest.xml || true
+          else
+            echo "WARNING: app_icon.jpg was still not found!"
           fi
+          
+          echo "APK_FILENAME=Praveen_Applock_v0.${VERSION_SUFFIX}" >> $GITHUB_ENV
+          echo "VERSION_TAG=v0.${VERSION_SUFFIX}" >> $GITHUB_ENV
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -61,10 +66,20 @@ jobs:
       - name: Build debug APK
         run: gradle --no-daemon :app:assembleDebug
 
-      - name: Upload APK
+      - name: Rename APK File
+        run: mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/${{ env.APK_FILENAME }}.apk
+
+      - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PersonalAppLock-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: ${{ env.APK_FILENAME }}
+          path: app/build/outputs/apk/debug/${{ env.APK_FILENAME }}.apk
           if-no-files-found: error
           retention-days: 7
+
+      - name: Create GitHub Release for Direct APK Download
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION_TAG }}
+          name: Release ${{ env.VERSION_TAG }}
+          files: app/build/outputs/apk/debug/${{ env.APK_FILENAME }}.apk
