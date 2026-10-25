@@ -1,0 +1,31 @@
+name: Auto-Fix UI Links
+
+on: workflow_dispatch
+
+permissions:
+  contents: write
+
+jobs:
+  fix-links:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Link Kotlin to UI Files
+        run: |
+          # Dynamically find your app's true package name
+          NAMESPACE=$(grep -oP 'namespace\s*=\s*"\K[^"]+' app/build.gradle.kts || echo "com.example.personalapplock")
+          
+          # Inject the correct import link into the Kotlin files
+          sed -i "s/package com.example.personalapplock/package com.example.personalapplock\n\nimport $NAMESPACE.R/g" app/src/main/java/com/example/personalapplock/AppAdapter.kt || true
+          sed -i "s/package com.example.personalapplock/package com.example.personalapplock\n\nimport $NAMESPACE.R/g" app/src/main/java/com/example/personalapplock/MainActivity.kt || true
+          sed -i "s/package com.example.personalapplock/package com.example.personalapplock\n\nimport $NAMESPACE.R/g" app/src/main/java/com/example/personalapplock/SettingsActivity.kt || true
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/java/com/example/personalapplock/*.kt
+          git commit -m "fix: explicit R class imports for UI linking" || echo "No changes to commit"
+          git push
