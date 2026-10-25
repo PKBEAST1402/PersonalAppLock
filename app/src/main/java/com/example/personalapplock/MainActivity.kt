@@ -1,6 +1,8 @@
 package com.example.personalapplock
 
 import android.os.Bundle
+import android.content.Intent
+import android.widget.ImageView
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -22,6 +24,7 @@ class MainActivity : FragmentActivity() {
         val adapter = AppAdapter(allApps)
         recyclerView.adapter = adapter
 
+        findViewById<ImageView>(R.id.btnSettings).setOnClickListener { startActivity(Intent(this, SettingsActivity::class.java)) }
         val tabLayout = findViewById<TabLayout>(R.id.tabLayout)
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
