@@ -66,7 +66,10 @@ jobs:
           </LinearLayout>
           EOF
           
-          # Fix Kotlin Imports dynamically
+          # CRITICAL FIX: Delete any existing R imports to prevent duplicates
+          sed -i '/import .*\.R/d' app/src/main/java/com/example/personalapplock/*.kt || true
+
+          # Inject exactly one clean import dynamically
           NAMESPACE=$(grep -oP 'namespace\s*=\s*"\K[^"]+' app/build.gradle.kts || echo "com.example.personalapplock")
           sed -i "s/package com.example.personalapplock/package com.example.personalapplock\n\nimport $NAMESPACE.R/g" app/src/main/java/com/example/personalapplock/*.kt || true
 
@@ -75,21 +78,16 @@ jobs:
           VERSION_SUFFIX=$(printf "%03d" ${{ github.run_number }})
           NEW_APP_NAME="Praveen Applock v0.$VERSION_SUFFIX"
           
-          # Force overwrite the app_name string
           sed -i -E "s/<string name=\"app_name\".*>.*<\/string>/<string name=\"app_name\">$NEW_APP_NAME<\/string>/g" app/src/main/res/values/strings.xml || true
           
-          # Use the new PNG thumbnail directly
           THUMBNAIL_PATH=$(find . -name "app_thumbnail.png" | head -n 1)
           
           if [ -n "$THUMBNAIL_PATH" ]; then
             echo "Successfully found PNG thumbnail at: $THUMBNAIL_PATH"
-            
-            # Delete default icons and map the custom one
             rm -rf app/src/main/res/mipmap-* || true
             mkdir -p app/src/main/res/mipmap-xxxhdpi
             cp "$THUMBNAIL_PATH" app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
             cp "$THUMBNAIL_PATH" app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
-            
             sed -i 's/android:icon="[^"]*"/android:icon="@mipmap\/ic_launcher"/g' app/src/main/AndroidManifest.xml || true
             sed -i 's/android:roundIcon="[^"]*"/android:roundIcon="@mipmap\/ic_launcher_round"/g' app/src/main/AndroidManifest.xml || true
           else
