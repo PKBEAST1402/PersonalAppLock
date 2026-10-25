@@ -30,11 +30,13 @@ jobs:
           sudo apt-get install -y unzip
           unzip -q PersonalAppLock_AndroidStudio_Starter.zip -d source
 
-      - name: Fix JVM Target Compatibility
+      - name: Force Java 17 Compatibility
         working-directory: ./source/PersonalAppLock
         run: |
-          sed -i 's/VERSION_1_8/VERSION_17/g' app/build.gradle.kts || true
-          sed -i 's/jvmTarget = "1.8"/jvmTarget = "17"/g' app/build.gradle.kts || true
+          # Recursively find all Gradle files and replace Java 1.8 references with Java 17
+          find . -type f -name "*build.gradle*" -exec sed -i 's/VERSION_1_8/VERSION_17/g' {} +
+          find . -type f -name "*build.gradle*" -exec sed -i 's/"1.8"/"17"/g' {} +
+          find . -type f -name "*build.gradle*" -exec sed -i "s/'1.8'/'17'/g" {} +
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
