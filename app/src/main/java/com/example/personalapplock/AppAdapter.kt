@@ -1,7 +1,5 @@
 package com.example.personalapplock
 
-import com.example.personalapplock.R
-
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,7 +22,6 @@ class AppAdapter(private var appList: List<String>) : RecyclerView.Adapter<AppAd
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.appName.text = appList[position]
-        // Note: Real app icons and locking logic will be added here later!
     }
 
     override fun getItemCount() = appList.size
