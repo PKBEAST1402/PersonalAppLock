@@ -1,5 +1,7 @@
 # Personal AppLock (starter MVP)
 
+[![Download Latest APK](https://img.shields.io/badge/Download-Latest_APK-green?style=for-the-badge&logo=android)](https://github.com/PKBEAST1402/PersonalAppLock/releases/latest)
+
 A beginner-friendly Android Studio starter for a personal app locker using Kotlin.
 It includes app selection, PIN, biometric prompt, and an AccessibilityService-based
 foreground-app monitor.
