@@ -1,6 +1,6 @@
 package com.example.personalapplock
 
-import com.example.personalapplock.R
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,7 +8,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class AppAdapter(private var appList: List<String>) : RecyclerView.Adapter<AppAdapter.ViewHolder>() {
+// A data class to hold the real app details
+data class AppInfo(val name: String, val packageName: String, val icon: Drawable)
+
+class AppAdapter(private var appList: List<AppInfo>) : RecyclerView.Adapter<AppAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val appName: TextView = view.findViewById(R.id.appName)
@@ -22,12 +25,14 @@ class AppAdapter(private var appList: List<String>) : RecyclerView.Adapter<AppAd
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.appName.text = appList[position]
+        val app = appList[position]
+        holder.appName.text = app.name
+        holder.appIcon.setImageDrawable(app.icon) // Set the real app icon!
     }
 
     override fun getItemCount() = appList.size
     
-    fun updateData(newList: List<String>) {
+    fun updateData(newList: List<AppInfo>) {
         appList = newList
         notifyDataSetChanged()
     }
