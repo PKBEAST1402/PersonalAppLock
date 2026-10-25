@@ -3,9 +3,8 @@ name: Build Personal AppLock APK
 on:
   workflow_dispatch:
   push:
-    paths:
-      - "PersonalAppLock_AndroidStudio_Starter.zip"
-      - ".github/workflows/build-apk.yml"
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -24,18 +23,15 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Extract project
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y unzip
-          unzip -q PersonalAppLock_AndroidStudio_Starter.zip -d source
-
       - name: Force Java 17 Compatibility
-        working-directory: ./source/PersonalAppLock
         run: |
-          # Append the correct Java 17 settings to the end of the file to override old settings
-          echo "" >> app/build.gradle.kts
-          echo "android { compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 } }" >> app/build.gradle.kts
+          echo "" >> app/build.gradle.kts || true
+          echo "android { compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 } }" >> app/build.gradle.kts || true
+
+      - name: Fix BiometricPrompt Activity Superclass
+        run: |
+          sed -i 's/class LockActivity : ComponentActivity/class LockActivity : androidx.fragment.app.FragmentActivity/g' app/src/main/java/com/example/personalapplock/LockActivity.kt || true
+          sed -i 's/class LockActivity : Activity/class LockActivity : androidx.fragment.app.FragmentActivity/g' app/src/main/java/com/example/personalapplock/LockActivity.kt || true
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -46,13 +42,12 @@ jobs:
         run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Build debug APK
-        working-directory: ./source/PersonalAppLock
         run: gradle --no-daemon :app:assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: PersonalAppLock-debug-apk
-          path: source/PersonalAppLock/app/build/outputs/apk/debug/app-debug.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 7
